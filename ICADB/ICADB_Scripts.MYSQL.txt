@@ -1,0 +1,104 @@
+DROP TABLE EVENTPLANLINE;
+DROP TABLE EVENTPLAN;
+DROP TABLE EVENTREQUEST;
+DROP TABLE LOCATION;
+DROP TABLE FACILITY;
+DROP TABLE RESOURCETBL;
+DROP TABLE CUSTOMER;
+DROP TABLE EMPLOYEE;
+
+-------------------- EMPLOYEE --------------------------------
+
+ CREATE TABLE Employee 
+  (EmpNo VARCHAR(8) NOT NULL COMMENT 'Employee number', 
+   EmpName VARCHAR(35) NOT NULL COMMENT 'Employee name', 
+   Department VARCHAR(25) NOT NULL COMMENT 'Department', 
+   Email VARCHAR(30) NOT NULL COMMENT 'electronic mail address', 
+   Phone VARCHAR(10) NOT NULL, 
+   CONSTRAINT PK_EMPLOYEE PRIMARY KEY (EmpNo) ) ;
+
+-------------------- CUSTOMER --------------------------------
+
+  CREATE TABLE Customer 
+   (CustNo VARCHAR(8) NOT NULL COMMENT 'Customer number', 
+    CustName VARCHAR(30) NOT NULL COMMENT 'Customer name', 
+    Address VARCHAR(50) NOT NULL COMMENT 'Customer address', 
+    Internal CHAR(1) NOT NULL COMMENT 'Customer type (Yes if internal, No otherwise)', 
+    Contact VARCHAR(35) NOT NULL COMMENT 'Contact person', 
+    Phone VARCHAR(11) NOT NULL COMMENT 'Contact phone number', 
+    City VARCHAR(30) NOT NULL COMMENT 'City',
+    State VARCHAR(2) NOT NULL COMMENT 'State', 
+    Zip VARCHAR(10) NOT NULL COMMENT 'Zip code',
+    CONSTRAINT PK_CUSTOMER PRIMARY KEY (CustNo) ) ;
+
+-------------------- RESOURCETBL --------------------------------
+
+  CREATE TABLE ResourceTbl
+  (ResNo VARCHAR(8) NOT NULL, 
+   ResName VARCHAR(30) NOT NULL, 
+   Rate DECIMAL(8,2) NOT NULL CHECK (Rate > 0), 
+   CONSTRAINT PK_RESOURCE PRIMARY KEY (ResNo) ) COMMENT 'ORIGINAL NAME:Resource';
+
+-------------------- FACILITY --------------------------------
+
+  CREATE TABLE Facility
+  (FacNo VARCHAR(8) NOT NULL COMMENT 'Facility number', 
+   FacName VARCHAR(30) NOT NULL COMMENT 'Facility name',
+   CONSTRAINT PK_FACILITY PRIMARY KEY (FacNo) );  
+
+-------------------- LOCATION --------------------------------
+
+  CREATE TABLE Location
+  (LocNo VARCHAR(8) NOT NULL COMMENT 'Location number', 
+   FacNo VARCHAR(8) NOT NULL COMMENT 'Facility number', 
+   LocName VARCHAR(30) NOT NULL COMMENT 'Location name',
+   CONSTRAINT PK_LOCATION PRIMARY KEY (LocNo),
+   CONSTRAINT FK_FACNO FOREIGN KEY (FacNo) REFERENCES FACILITY (FacNo) );
+
+-------------------- EVENTREQUEST --------------------------------
+
+  CREATE TABLE EventRequest
+  (EventNo VARCHAR(8) NOT NULL COMMENT 'Event number', 
+   DateHeld DATE NOT NULL COMMENT 'Event date', 
+   DateReq DATE NOT NULL COMMENT 'Date requested', 
+   CustNo VARCHAR(8) NOT NULL COMMENT 'Customer number', 
+   FacNo VARCHAR(8) NOT NULL COMMENT 'Facility number', 
+   DateAuth DATE COMMENT 'Date authorized', 
+   Status VARCHAR(20) NOT NULL COMMENT 'Status of event request' CHECK (Status IN ('Pending', 'Denied', 'Approved')), 
+   EstCost DECIMAL(8,2) NOT NULL COMMENT 'Estimated cost', 
+   EstAudience DECIMAL(10,0) NOT NULL COMMENT 'Estimated audience' CHECK (EstAudience > 0), 
+   BudNo VARCHAR(8) COMMENT 'Budget number',
+   CONSTRAINT PK_EVENTREQUEST PRIMARY KEY (EventNo),
+   CONSTRAINT FK_EVENT_FACNO FOREIGN KEY (FacNo) REFERENCES FACILITY (FacNo),
+   CONSTRAINT FK_CUSTNO FOREIGN KEY (CustNo) REFERENCES CUSTOMER (CustNo) ); 
+
+-------------------- EVENTPLAN --------------------------------
+
+  CREATE TABLE EventPlan
+  (PlanNo VARCHAR(8) NOT NULL COMMENT 'Event plan number', 
+   EventNo VARCHAR(8) NOT NULL COMMENT 'Event number', 
+   WorkDate DATE NOT NULL COMMENT 'Work date', 
+   Notes VARCHAR(50), 
+   Activity VARCHAR(50) NOT NULL, 
+   EmpNo VARCHAR(8),
+   CONSTRAINT PK_EVENTPLAN PRIMARY KEY (PlanNo), 
+   CONSTRAINT FK_EMPNO FOREIGN KEY (EmpNo) REFERENCES EMPLOYEE (EmpNo),
+   CONSTRAINT FK_EVENTNO FOREIGN KEY (EventNo) REFERENCES EVENTREQUEST (EventNo) ); 
+
+-------------------- EVENTPLANLINE --------------------------------
+
+  CREATE TABLE EventPlanLine
+  (PlanNo VARCHAR(8) NOT NULL COMMENT 'Event Event plan number', 
+   LineNo INTEGER NOT NULL COMMENT 'line number', 
+   TimeStart DATETIME NOT NULL COMMENT 'Time start', 
+   TimeEnd DATETIME NOT NULL COMMENT 'Time end', 
+   NumberFld INTEGER NOT NULL COMMENT 'ORIGINAL NAME:number , Number of resources needed', 
+   LocNo VARCHAR(8) NOT NULL, 
+   ResNo VARCHAR(8) NOT NULL,
+   CHECK (TimeStart < TimeEnd), 
+   CONSTRAINT PK_EVENTPLANLINE PRIMARY KEY (PlanNo, LineNo),
+   CONSTRAINT FK_LOCNO FOREIGN KEY (LocNo) REFERENCES LOCATION (LocNo), 
+   CONSTRAINT FK_RESNO FOREIGN KEY (ResNo) REFERENCES RESOURCETBL (ResNo), 
+   CONSTRAINT FK_PLANNO FOREIGN KEY (PlanNo) REFERENCES EVENTPLAN (PlanNo) ); 
+
+
